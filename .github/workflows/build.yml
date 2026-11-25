@@ -8,8 +8,8 @@ on:
       - "scripts/**"
       - "media3-stubs/**"
   schedule:
-    - cron: '17 3 * * *'
-  workflow_dispatch:
+    - cron: '17 3 * * *'        # 自动跟随上游：每天 UTC 03:17
+  workflow_dispatch:            # 手动触发
 
 permissions:
   contents: write
@@ -46,8 +46,15 @@ jobs:
 
       - name: Clone upstream sources
         run: |
-          echo "Cloning FongMi/TV@fongmi ..."
-          git clone --depth 1 --branch fongmi https://github.com/FongMi/TV.git tv
+          # Pin TV to the commit that matches the public Media3 fork API.
+          # FongMi/TV@fongmi HEAD (Nov 2026) imports newer custom Media3 classes
+          # (DecoderMode / exoplayer.iso / libass ...) that were never published
+          # to the public FongMi/media fork. The 2026-07-29 snapshot below is the
+          # last TV revision whose Media3 API matches release-1.11.0-fongmi.
+          TV_COMMIT="f803adce0bfffebd05a2115a126aa3334ae99a11"
+          echo "Cloning FongMi/TV @ ${TV_COMMIT} (API-matched snapshot) ..."
+          git clone --filter=blob:none --no-checkout --branch fongmi https://github.com/FongMi/TV.git tv
+          git -C tv checkout --detach "${TV_COMMIT}"
           echo "Cloning FongMi/media@release-1.11.0-fongmi ..."
           git clone --depth 1 --branch release-1.11.0-fongmi https://github.com/FongMi/media.git media3
           echo "TV commit:     $(git -C tv rev-parse HEAD)"
@@ -81,6 +88,7 @@ jobs:
         run: |
           mkdir -p dist
           find tv/app/build/outputs/apk -name '*.apk' -type f -exec cp {} dist/ \;
+          echo "=== APKs ==="
           ls -lh dist/
           test -n "$(ls -A dist/*.apk 2>/dev/null)" || { echo "No APK produced"; exit 1; }
 
