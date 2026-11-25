@@ -102,7 +102,7 @@ if (media3SourceDir == null || media3SourceDir.isBlank()) {{
     throw new GradleException("MEDIA3_SOURCE_DIR must point to a FongMi/media checkout")
 }}
 def media3Dir = file(media3SourceDir)
-if (!media3Dir.isDir()) throw new GradleException("MEDIA3_SOURCE_DIR does not exist: ${{media3Dir}}")
+if (!media3Dir.isDirectory()) throw new GradleException("MEDIA3_SOURCE_DIR does not exist: ${{media3Dir}}")
 includeBuild(media3Dir) {{
     dependencySubstitution {{
 {substitution}
