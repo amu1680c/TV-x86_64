@@ -1,6 +1,12 @@
 name: Build TV x86_64
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/**"
+      - "media3-stubs/**"
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
@@ -40,7 +46,9 @@ jobs:
 
       - name: Clone upstream sources
         run: |
+          echo "Cloning FongMi/TV@fongmi ..."
           git clone --depth 1 --branch fongmi https://github.com/FongMi/TV.git tv
+          echo "Cloning FongMi/media@release-1.11.0-fongmi ..."
           git clone --depth 1 --branch release-1.11.0-fongmi https://github.com/FongMi/media.git media3
           echo "TV commit:     $(git -C tv rev-parse HEAD)"
           echo "Media3 commit: $(git -C media3 rev-parse HEAD)"
@@ -93,7 +101,7 @@ jobs:
           name: TV x86_64 (${{ github.run_number }})
           generate_release_notes: true
           body: |
-            Automated x86_64 build of FongMi/TV@fongmi.
+            Automated x86_64 build of [FongMi/TV](https://github.com/FongMi/TV)@fongmi.
 
             - Player: ExoPlayer (custom Media3 built from source, default engine)
             - ABI: x86_64 (native, no ARM translation)
