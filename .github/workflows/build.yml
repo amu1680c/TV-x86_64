@@ -56,20 +56,6 @@ jobs:
       - name: Apply patches
         run: python3 scripts/patch.py "$PWD/tv" "$PWD/media3"
 
-      - name: Write SDK 37.0 compat init script
-        run: |
-          cat > "$RUNNER_TEMP/sdk-compat.gradle" <<'GRADLE'
-          gradle.beforeProject { p ->
-              ['com.android.application', 'com.android.library'].each { pluginId ->
-                  p.pluginManager.withPlugin(pluginId) {
-                      p.extensions.getByName('androidComponents').finalizeDsl { dsl ->
-                          if (dsl.compileSdk == 37) dsl.compileSdkMinor = 0
-                      }
-                  }
-              }
-          }
-          GRADLE
-
       - name: Build x86_64 APKs
         working-directory: tv
         env:
@@ -77,7 +63,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           set +e
-          ./gradlew -I "$RUNNER_TEMP/sdk-compat.gradle" \
+          ./gradlew -I "$GITHUB_WORKSPACE/scripts/compat-init.gradle" \
             :app:assembleLeanbackDebug :app:assembleMobileDebug \
             --no-daemon --max-workers=2 --stacktrace 2>&1 | tee "$RUNNER_TEMP/build.log"
           RC=${PIPESTATUS[0]}
