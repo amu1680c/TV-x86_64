@@ -84,7 +84,7 @@ jobs:
           set -e
           if [ "$RC" -ne 0 ]; then
             echo "::group::Gradle failure excerpt"
-            grep -iE "what went wrong|FAILURE:|Execution failed|Could not|Unresolved reference|error:|^e: |not found|FAILED|GradleException|Exception|Caused by" "$RUNNER_TEMP/build.log" | tail -60 | while IFS= read -r line; do
+            awk '/\* What went wrong:/{flag=1} flag{print}' "$RUNNER_TEMP/build.log" | head -45 | while IFS= read -r line; do
               echo "::error::${line}"
             done
             echo "::endgroup::"
