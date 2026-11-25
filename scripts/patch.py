@@ -128,7 +128,7 @@ def patch_versions():
     anchor = "[libraries]\n"
     if "media3-common = " not in t:
         t = sub(t, anchor, anchor + libs_lines + "\n", "add media3 libraries")
-    bundle = "[bundles]\nmedia3 = [" + ", ".join(BUNDLE_NAMES) + "]\n"
+    bundle = "[bundles]\nmedia3 = [" + ", ".join(f'"{n}"' for n in BUNDLE_NAMES) + "]\n"
     if "[bundles]" in t:
         if "media3 = [" not in t:
             t = sub(t, "[bundles]\n", bundle, "add media3 bundle")
