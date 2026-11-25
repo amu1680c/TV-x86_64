@@ -76,9 +76,20 @@ jobs:
           MEDIA3_SOURCE_DIR: ${{ github.workspace }}/media3
         run: |
           chmod +x ./gradlew
+          set +e
           ./gradlew -I "$RUNNER_TEMP/sdk-compat.gradle" \
             :app:assembleLeanbackDebug :app:assembleMobileDebug \
-            --no-daemon --max-workers=2 --stacktrace
+            --no-daemon --max-workers=2 --stacktrace 2>&1 | tee "$RUNNER_TEMP/build.log"
+          RC=${PIPESTATUS[0]}
+          set -e
+          if [ "$RC" -ne 0 ]; then
+            echo "::group::Gradle failure excerpt"
+            grep -iE "what went wrong|FAILURE:|Execution failed|Could not|Unresolved reference|error:|^e: |not found|FAILED|GradleException|Exception|Caused by" "$RUNNER_TEMP/build.log" | tail -60 | while IFS= read -r line; do
+              echo "::error::${line}"
+            done
+            echo "::endgroup::"
+            exit "$RC"
+          fi
 
       - name: Collect APKs
         run: |
