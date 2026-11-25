@@ -111,6 +111,7 @@ includeBuild(media3Dir) {{
 """
     if "MEDIA3_SOURCE_DIR" not in s:
         s = s.rstrip() + "\n" + block
+    # flatDir for local AARs is fine to keep; jitpack no longer needed but harmless.
     tv_write("settings.gradle", s)
 
 
@@ -119,10 +120,14 @@ includeBuild(media3Dir) {{
 # ---------------------------------------------------------------------------
 def patch_versions():
     t = tv_read("gradle/libs.versions.toml")
-    # AGP alignment: upstream TV uses 9.5.1, but the custom Media3 fork is built
-    # with AGP 9.0.1. Gradle forbids two AGP versions in one composite build.
-    # Pin TV to 9.0.1 (the combination wobuhui666/TV verified as working).
-    t = sub(t, 'agp = "9.5.1"', 'agp = "9.0.1"', "align AGP to Media3 9.0.1", required=False)
+    # AGP alignment: the custom Media3 fork is built with AGP 9.0.1. Gradle
+    # forbids two AGP versions in one composite build, so pin TV to 9.0.1 no
+    # matter which AGP the pinned TV snapshot declares (9.5.1 on fongmi HEAD,
+    # 9.2.1 on the API-matched 2026-07-29 snapshot we now use).
+    import re as _re
+    t, n = _re.subn(r'agp = "[0-9][^"]*"', 'agp = "9.0.1"', t, count=1)
+    if n:
+        print("[patch] aligned TV AGP -> 9.0.1 to match Media3 fork")
     if 'media3 = ' not in t:
         t = sub(t, "[versions]\n", f'[versions]\nmedia3 = "{MEDIA_VERSION}"\n', "add media3 version")
     libs_lines = "\n".join(
@@ -214,6 +219,7 @@ def patch_abi_packaging():
         "static final Map<String, String> ABI_FLAVORS = [x64: 'x86_64'].asImmutable()",
         "ABI_FLAVORS -> x86_64",
     )
+    # Make native-library verification a no-op: the private AARs are absent.
     old_body = """    private static void configureNativeLibraries(Project project, def variant, List<String> abis) {
         variant.packaging.jniLibs.excludes.addAll((THUNDER_LIBRARIES + MPV_LIBRARIES + [RUNTIME_PROFILES.nodejs.library, RUNTIME_PROFILES.quickjs.library]).collect { "**/${it}".toString() })
         variant.packaging.jniLibs.keepDebugSymbols.add('**/libc++_shared.so')
