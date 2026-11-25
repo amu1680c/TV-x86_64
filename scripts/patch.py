@@ -119,6 +119,10 @@ includeBuild(media3Dir) {{
 # ---------------------------------------------------------------------------
 def patch_versions():
     t = tv_read("gradle/libs.versions.toml")
+    # AGP alignment: upstream TV uses 9.5.1, but the custom Media3 fork is built
+    # with AGP 9.0.1. Gradle forbids two AGP versions in one composite build.
+    # Pin TV to 9.0.1 (the combination wobuhui666/TV verified as working).
+    t = sub(t, 'agp = "9.5.1"', 'agp = "9.0.1"', "align AGP to Media3 9.0.1", required=False)
     if 'media3 = ' not in t:
         t = sub(t, "[versions]\n", f'[versions]\nmedia3 = "{MEDIA_VERSION}"\n', "add media3 version")
     libs_lines = "\n".join(
